@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> To-Do List </title>
+    <!-- خطوط جوجل وأيقونات FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* الألوان والمتغيرات (تدعم الوضع الفاتح والداكن) */
+        :root {
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --danger: #ef4444;
+            --success: #10b981;
+            --high-priority: #ffe4e6;
+            --high-border: #f43f5e;
+            --med-priority: #fef3c7;
+            --med-border: #f59e0b;
+            --low-priority: #f3f4f6;
+            --low-border: #9ca3af;
+        }
+
+        body.dark-mode {
+            --bg-color: #111827;
+            --card-bg: #1f2937;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --border-color: #374151;
+            --low-priority: #374151;
+            --low-border: #6b7280;
+            --med-priority: #422006;
+            --high-priority: #4c0519;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 600px;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .header h2 { font-weight: 600; }
+        
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        input[type="text"], select {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            outline: none;
+            font-size: 1rem;
+        }
+
+        input[type="text"] { flex: 1; }
+        
+        input[type="text"]:focus, select:focus {
+            border-color: var(--primary);
+        }
+
+        button.btn-add {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 1.5rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        button.btn-add:hover { background-color: var(--primary-hover); }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .filter-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-weight: 500;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .filter-btn.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        ul { list-style: none; }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid var(--border-color);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .priority-high { background-color: var(--high-priority); border-left-color: var(--high-border); }
+        .priority-med { background-color: var(--med-priority); border-left-color: var(--med-border); }
+        .priority-normal { background-color: var(--low-priority); border-left-color: var(--low-border); }
+
+        .task-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .task-checkbox {
+            cursor: pointer;
+            width: 20px;
+            height: 20px;
+        }
+
+        .task-title {
+            flex: 1;
+            word-break: break-word;
+            font-size: 1rem;
+        }
+
+        .completed .task-title {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .task-date {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        .actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-left: 0.5rem;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+
+        .actions button.edit-btn:hover { color: var(--primary); }
+        .actions button.delete-btn:hover { color: var(--danger); }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .clear-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .clear-btn:hover { color: var(--danger); text-decoration: underline; }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+        .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+
+        /* حقل التعديل المباشر */
+        .edit-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--primary);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2><i class="fa-solid fa-check-double" style="color: var(--primary);"></i> TO-DO LIST </h2>
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <i class="fa-solid fa-moon" id="themeIcon"></i>
+        </button>
+    </div>
+
+    <div class="input-group">
+        <input type="text" id="taskInput" placeholder="Add a new task...">
+        <select id="taskPriority">
+            <option value="normal">Normal</option>
+            <option value="med">Medium</option>
+            <option value="high">High</option>
+        </select>
+        <button class="btn-add" onclick="addTask()"><i class="fa-solid fa-plus"></i></button>
+    </div>
+
+    <div class="filters">
+        <button class="filter-btn active" onclick="setFilter('all')">All</button>
+        <button class="filter-btn" onclick="setFilter('active')">Active</button>
+        <button class="filter-btn" onclick="setFilter('completed')">Completed</button>
+    </div>
+
+    <ul id="taskList"></ul>
+
+    <div class="footer">
+        <span id="taskCount">0 items left</span>
+        <button class="clear-btn" onclick="clearCompleted()">Clear Completed</button>
+    </div>
+</div>
+
+<script>
+    let allTasks = [];
+    let currentFilter = 'all';
+
+    // الوضع الليلي
+    function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+        const icon = document.getElementById('themeIcon');
+        if(document.body.classList.contains('dark-mode')) {
+            icon.classList.replace('fa-moon', 'fa-sun');
+        } else {
+            icon.classList.replace('fa-sun', 'fa-moon');
+        }
+    }
+
+    // إضافة بالانتر
+    document.getElementById("taskInput").addEventListener("keypress", function(e) {
+        if (e.key === "Enter") addTask();
+    });
+
+    async function loadTasks() {
+        try {
+            const res = await fetch("/tasks");
+            allTasks = await res.json();
+            renderTasks();
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    }
+
+    function renderTasks() {
+        const list = document.getElementById("taskList");
+        list.innerHTML = "";
+
+        // الفلترة
+        let filteredTasks = allTasks.filter(task => {
+            if (currentFilter === 'active') return !task.completed;
+            if (currentFilter === 'completed') return task.completed;
+            return true;
+        });
+
+        // تحديث العداد
+        const activeCount = allTasks.filter(t => !t.completed).length;
+        document.getElementById("taskCount").textContent = `${activeCount} item${activeCount !== 1 ? 's' : ''} left`;
+
+        if (filteredTasks.length === 0) {
+            list.innerHTML = `<div class="empty-state">
+                <i class="fa-solid fa-clipboard-list"></i>
+                <p>No tasks found here!</p>
+            </div>`;
+            return;
+        }
+
+        filteredTasks.forEach(task => {
+            const li = document.createElement("li");
+            li.className = `priority-${task.priority} ${task.completed ? 'completed' : ''}`;
+
+            li.innerHTML = `
+                <div class="task-content">
+                    <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask('${task.id}', this.checked)">
+                    <div style="flex: 1;">
+                        <div class="task-title" id="title-${task.id}">${task.title}</div>
+                        <span class="task-date">${task.date}</span>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button class="edit-btn" onclick="editTask('${task.id}', '${task.title.replace(/'/g, "\\'")}')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="delete-btn" onclick="deleteTask('${task.id}')"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    async function addTask() {
+        const input = document.getElementById("taskInput");
+        const priority = document.getElementById("taskPriority");
+        const title = input.value.trim();
+
+        if (!title) return;
+
+        await fetch("/tasks", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ title: title, priority: priority.value })
+        });
+
+        input.value = "";
+        loadTasks();
+    }
+
+    async function toggleTask(id, isCompleted) {
+        await fetch(`/tasks/${id}`, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ completed: isCompleted })
+        });
+        loadTasks();
+    }
+
+    async function deleteTask(id) {
+        await fetch(`/tasks/${id}`, { method: "DELETE" });
+        loadTasks();
+    }
+
+    async function clearCompleted() {
+        await fetch(`/tasks/completed`, { method: "DELETE" });
+        loadTasks();
+    }
+
+    // تحويل النص إلى حقل إدخال للتعديل
+    function editTask(id, oldTitle) {
+        const titleDiv = document.getElementById(`title-${id}`);
+        titleDiv.innerHTML = `<input type="text" class="edit-input" value="${oldTitle}" id="edit-input-${id}">`;
+        const input = document.getElementById(`edit-input-${id}`);
+        input.focus();
+
+        input.addEventListener("keypress", async function(e) {
+            if (e.key === "Enter") {
+                const newTitle = input.value.trim();
+                if (newTitle && newTitle !== oldTitle) {
+                    await fetch(`/tasks/${id}`, {
+                        method: "PUT",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({ title: newTitle })
+                    });
+                }
+                loadTasks();
+            }
+        });
+        
+        // إلغاء التعديل عند النقر خارج الحقل
+        input.addEventListener("blur", loadTasks);
+    }
+
+    function setFilter(filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        renderTasks();
+    }
+
+    loadTasks();
+</script>
+
+</body>
+</html>
