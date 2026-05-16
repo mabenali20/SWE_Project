@@ -8,8 +8,7 @@ tasks = []
 
 @app.route("/")
 def home():
-    return render_template("index.html")
-
+    return "Welcome To Our Project!"
 @app.route("/tasks", methods=["GET"])
 def get_tasks():
     return jsonify(tasks), 200
